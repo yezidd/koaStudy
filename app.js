@@ -1,29 +1,31 @@
 const Koa = require('koa');
-const app = new Koa();
-const fs = require('fs');
-function render(filename){
-	let file = process.cwd()+"/view/"+filename;
-	let data = fs.readFileSync(file,'utf-8');
-	console.log(data)
-	return data;
-}
+const Router = require('koa-router');
 
-app.use(async ctx => {
-  console.log(ctx.req.url)
-  var index;
-  switch(ctx.req.url){
-  	case '/':
-  		index = 'index.html';
-  		break;
-  	case '/about':
-  		index = 'about.html';
-  		break;
-  	default:
-  		index = '404.html';
-  		break;
-  }
-  let data = render(index);
-  ctx.body = data;
+const app = new Koa();
+const router = new Router();
+
+app.use(logger);
+router.get('/', function (ctx, next) {
+  // ctx.router available
+  ctx.body = "Hello world";
 });
 
-app.listen(3000);
+router.get('/about',function (ctx,next){
+	ctx.body = 'about';
+});
+
+router.get('user', '/users/:id', function (ctx, next) {
+ // ...
+ console.log(ctx.params.id);
+});
+async function logger(ctx, next) {
+  const startDate = new Date();
+  next();
+  console.log(`method: ${ctx.method} code: ${ctx.status} time:${new Date() -startDate}ms`);
+}
+
+app
+  .use(router.routes())
+  .use(router.allowedMethods())
+  
+  app.listen(3000);
